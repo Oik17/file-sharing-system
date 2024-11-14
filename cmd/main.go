@@ -5,8 +5,9 @@ import (
 
 	"github.com/Oik17/file-sharing-system/internal/controllers"
 	"github.com/Oik17/file-sharing-system/internal/database"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/Oik17/file-sharing-system/internal/routes"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -29,5 +30,7 @@ func main() {
 
 	e.GET("/login", controllers.HandleLogin)
 	e.GET("/callback", controllers.HandleCallback)
+
+	routes.RandomRoutes(e)
 	e.Start(":8080")
 }

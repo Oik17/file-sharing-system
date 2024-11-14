@@ -3,7 +3,6 @@ package main
 import (
 	"net/http"
 
-	"github.com/Oik17/file-sharing-system/internal/controllers"
 	"github.com/Oik17/file-sharing-system/internal/database"
 	"github.com/Oik17/file-sharing-system/internal/routes"
 	"github.com/labstack/echo/v4"
@@ -28,9 +27,7 @@ func main() {
 		return c.JSON(http.StatusOK, map[string]string{"message": "Hello, Echo!"})
 	})
 
-	e.GET("/login", controllers.HandleLogin)
-	e.GET("/callback", controllers.HandleCallback)
-
+	routes.UserRoutes(e)
 	routes.RandomRoutes(e)
 	e.Start(":8080")
 }

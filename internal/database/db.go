@@ -55,7 +55,7 @@ func runMigrations(db *sqlx.DB) {
 		CREATE TABLE IF NOT EXISTS users (
 			id UUID PRIMARY KEY,
 			email VARCHAR(255) UNIQUE NOT NULL,
-			username VARCHAR(255) UNIQUE NOT NULL,
+			username VARCHAR(255),
 			profile_picture TEXT,
 			verified_email BOOLEAN DEFAULT FALSE,
 			files TEXT[],

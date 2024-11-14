@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 
+	"github.com/Oik17/file-sharing-system/internal/services"
 	"github.com/Oik17/file-sharing-system/internal/utils"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -59,75 +58,19 @@ func HandleCallback(c echo.Context) error {
 		return c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 	userInfo["access_token"] = token.AccessToken
-
-	// user, err := services.CreateOrUpdateUser(userInfo)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// 	return c.JSON(http.StatusInternalServerError, echo.Map{
-	// 		"message": "Failed to create user",
-	// 		"data":    err.Error(),
-	// 		"status":  false,
-	// 	})
-	// }
+	log.Println(userInfo)
+	user, err := services.CreateOrUpdateUser(userInfo)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "Failed to create user",
+			"data":    err.Error(),
+			"status":  false,
+		})
+	}
 
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Successfully logged in",
-		"data":    userInfo,
+		"data":    user,
 		"status":  true,
 	})
-}
-
-var secretKey = []byte("your-secret-key")
-
-type AuthController struct{}
-
-func (ac *AuthController) Login(c echo.Context) error {
-	username := c.FormValue("username")
-	password := c.FormValue("password")
-
-	if username == "admin" && password == "password" {
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"username": username,
-			"exp":      time.Now().Add(time.Hour * 24).Unix(),
-		})
-
-		tokenString, err := token.SignedString(secretKey)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Could not generate token"})
-		}
-
-		return c.JSON(http.StatusOK, echo.Map{"token": tokenString})
-	} else {
-		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid credentials"})
-	}
-}
-
-func (ac *AuthController) AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		tokenString := c.Request().Header.Get("Authorization")
-		if tokenString == "" {
-			return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Authorization header is required"})
-		}
-
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return secretKey, nil
-		})
-
-		if err != nil || !token.Valid {
-			return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid token"})
-		}
-
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Could not parse claims"})
-		}
-
-		c.Set("username", claims["username"])
-		return next(c)
-	}
-}
-
-func (ac *AuthController) ProtectedRoute(c echo.Context) error {
-	username := c.Get("username").(string)
-	return c.JSON(http.StatusOK, echo.Map{"message": "Hello " + username + ", this is a protected route"})
 }

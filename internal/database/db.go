@@ -53,7 +53,7 @@ func runMigrations(db *sqlx.DB) {
 		CREATE TABLE IF NOT EXISTS test (test VARCHAR(255));
 		
 		CREATE TABLE IF NOT EXISTS users (
-			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			id UUID PRIMARY KEY,
 			email VARCHAR(255) UNIQUE NOT NULL,
 			username VARCHAR(255) UNIQUE NOT NULL,
 			profile_picture TEXT,

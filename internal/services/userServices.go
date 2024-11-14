@@ -28,7 +28,7 @@ func CreateOrUpdateUser(userInfo map[string]interface{}) (models.User, error) {
 		&existingUser.CreatedAt,
 		&existingUser.UpdatedAt,
 		&existingUser.AccessToken,
-		&existingUser.RefreshToken, // Handle sql.NullString
+		&existingUser.RefreshToken, 
 	)
 	if err == nil {
 		existingUser.AccessToken = accessToken
@@ -72,7 +72,7 @@ func createUser(userInfo map[string]interface{}) (models.User, error) {
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.AccessToken,
-		&user.RefreshToken, // Handle sql.NullString
+		&user.RefreshToken, 
 	)
 	if err != nil {
 		return models.User{}, err

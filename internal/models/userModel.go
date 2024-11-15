@@ -14,8 +14,8 @@ type User struct {
 	ProfilePicture string         `json:"profile_picture" db:"profile_picture"`
 	VerifiedEmail  bool           `json:"verified_email" db:"verified_email"`
 	Files          []string       `json:"files" db:"files"`
-	StorageQuota   int64          `json:"storage_quota" db:"storage_quota"` // in bytes
-	StorageUsed    int64          `json:"storage_used" db:"storage_used"`   // in bytes
+	StorageQuota   int64          `json:"storage_quota" db:"storage_quota"` 
+	StorageUsed    int64          `json:"storage_used" db:"storage_used"`   
 	CreatedAt      time.Time      `json:"created_at" db:"created_at"`
 	UpdatedAt      time.Time      `json:"updated_at" db:"updated_at"`
 	AccessToken    string         `json:"access_token" db:"access_token"`

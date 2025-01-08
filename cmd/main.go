@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-
 func main() {
 	database.Connect()
 	e := echo.New()

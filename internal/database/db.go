@@ -67,6 +67,20 @@ func runMigrations(db *sqlx.DB) {
 			refresh_token TEXT
 );
 
+		CREATE TABLE IF NOT EXISTS files (
+			id UUID PRIMARY KEY,
+			user_id UUID,
+			parent_folders TEXT[],
+			level BIGINT,
+			name VARCHAR(255),
+			file_link TEXT,
+			is_folder BOOLEAN DEFAULT FALSE,
+			is_starred BOOLEAN DEFAULT FALSE,
+			created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (user_id) REFERENCES users(id)
+		);
+
 	`)
 
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/Oik17/file-sharing-system/internal/database"
 	"github.com/Oik17/file-sharing-system/internal/models"
+	"github.com/Oik17/file-sharing-system/internal/utils"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
@@ -13,7 +14,6 @@ func CreateOrUpdateUser(userInfo map[string]interface{}) (models.User, error) {
 	db := database.DB.Db
 
 	email, _ := userInfo["email"].(string)
-	accessToken, _ := userInfo["access_token"].(string)
 
 	var existingUser models.User
 	err := db.QueryRow(`SELECT * FROM users WHERE email = $1`, email).Scan(
@@ -28,11 +28,17 @@ func CreateOrUpdateUser(userInfo map[string]interface{}) (models.User, error) {
 		&existingUser.CreatedAt,
 		&existingUser.UpdatedAt,
 		&existingUser.AccessToken,
-		&existingUser.RefreshToken, 
+		&existingUser.RefreshToken,
 	)
+
 	if err == nil {
-		existingUser.AccessToken = accessToken
-		_, err = db.Exec(`UPDATE users SET access_token = $1 WHERE email = $2`, accessToken, email)
+		userID := existingUser.ID.String()
+		jwtToken, err := utils.GenerateJWT(userID)
+		if err != nil {
+			return models.User{}, err
+		}
+		existingUser.AccessToken = jwtToken
+		_, err = db.Exec(`UPDATE users SET access_token = $1 WHERE email = $2`, jwtToken, email)
 
 		if err != nil {
 			return models.User{}, err
@@ -40,7 +46,6 @@ func CreateOrUpdateUser(userInfo map[string]interface{}) (models.User, error) {
 
 		return existingUser, nil
 	}
-
 	if err != nil && err != sql.ErrNoRows {
 		return models.User{}, err
 	}
@@ -56,7 +61,8 @@ func createUser(userInfo map[string]interface{}) (models.User, error) {
 	email, _ := userInfo["email"].(string)
 	profilePicture, _ := userInfo["picture"].(string)
 	isVerified, _ := userInfo["verified_email"].(bool)
-	accessToken, _ := userInfo["access_token"].(string)
+	accessToken, _ :=  utils.GenerateJWT(id.String())
+	
 
 	var user models.User
 	err := db.QueryRow(`INSERT INTO users (id, username, email, profile_picture, verified_email, access_token) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
@@ -72,7 +78,7 @@ func createUser(userInfo map[string]interface{}) (models.User, error) {
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.AccessToken,
-		&user.RefreshToken, 
+		&user.RefreshToken,
 	)
 	if err != nil {
 		return models.User{}, err

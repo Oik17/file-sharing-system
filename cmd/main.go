@@ -11,7 +11,8 @@ import (
 )
 
 func main() {
-	database.Connect()
+	database.InitDB()
+	database.InitRedis()
 	e := echo.New()
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{

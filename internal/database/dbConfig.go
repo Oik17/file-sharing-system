@@ -17,7 +17,7 @@ type Dbinstance struct {
 
 var DB Dbinstance
 
-func Connect() {
+func InitDB() {
 	p := utils.Config("DB_PORT")
 	port, err := strconv.Atoi(p)
 	if err != nil {

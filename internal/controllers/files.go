@@ -315,7 +315,6 @@ func CreateFolder(c echo.Context) error {
 		})
 	}
 
-	// Get parent folder information if provided
 	var parentFolders []string
 	var level int64 = 0
 

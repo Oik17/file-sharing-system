@@ -1,13 +1,11 @@
 package middleware
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 
-	"github.com/Oik17/file-sharing-system/internal/database"
 	"github.com/Oik17/file-sharing-system/internal/utils"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
@@ -41,7 +39,7 @@ func Protected(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to parse JWT claims")
 		}
 
-		userIDStr, ok := claims["id"].(string)
+		userIDStr, ok := claims["user_id"].(string)
 		if !ok {
 			return echo.NewHTTPError(http.StatusInternalServerError, "User ID claim missing or invalid")
 		}
@@ -51,11 +49,11 @@ func Protected(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Invalid user ID format")
 		}
 
-		sessionKey := "session:" + userIDStr
-		storedToken, err := database.RedisClient.Get(context.Background(), sessionKey).Result()
-		if err != nil || storedToken != tokenStr {
-			return echo.NewHTTPError(http.StatusUnauthorized, "Session expired or invalid")
-		}
+		// sessionKey := "session:" + userIDStr
+		// storedToken, err := database.RedisClient.Get(context.Background(), sessionKey).Result()
+		// if err != nil || storedToken != tokenStr {
+		// 	return echo.NewHTTPError(http.StatusUnauthorized, "Session expired or invalid")
+		// }
 
 		c.Set("user_id", userID)
 		return next(c)

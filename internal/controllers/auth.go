@@ -24,8 +24,7 @@ var (
 		Endpoint:     google.Endpoint,
 	}
 	oauthStateString = "random"
-
-	jwtSecretKey = []byte(utils.Config("JWT_SECRET_KEY"))
+	
 )
 
 func HandleCallback(c echo.Context) error {

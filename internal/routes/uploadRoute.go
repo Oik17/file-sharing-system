@@ -10,5 +10,5 @@ func RandomRoutes(e *echo.Echo) {
 	// e.Use(middleware.Protected)
 	// e.POST("/upload", controllers.UploadFilesToS3)
 	e.POST("/upload", controllers.UploadFilesToS3, middleware.Protected)
-
+	e.GET("/files/get", controllers.ListFilesInFolder, middleware.Protected	)
 }

@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { FirestoreAdapter } from "@next-auth/firebase-adapter";
-import jwt from "jsonwebtoken";
 
 export const authOptions = {
   providers: [
@@ -10,27 +9,21 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-  adapter: FirestoreAdapter({
-    apiKey: process.env.FIREBASE_API_KEY!,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN!,
-    projectId: process.env.FIREBASE_PROJECT_ID!,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET!,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID!,
-    appId: process.env.FIREBASE_APP_ID!,
-  }),
   callbacks: {
-    async session({ session, token }: any) {
-      const jwtToken = jwt.sign(
-        { email: session.user.email },
-        process.env.JWT_SECRET!,
-        { expiresIn: "1h" }
-      );
-      session.accessToken = jwtToken;
+    async jwt({ token, account }) {
+      if (account) {
+        token.accessToken = account.access_token;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.user.accessToken = token.accessToken;
       return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+// Export NextAuth for GET and POST
+export const GET = NextAuth(authOptions);
+export const POST = NextAuth(authOptions);

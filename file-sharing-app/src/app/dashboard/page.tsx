@@ -7,18 +7,23 @@ export default function Dashboard() {
   const [files, setFiles] = useState<string[]>([]);
 
   useEffect(() => {
-    if (session) {
+    if (session?.user?.accessToken) {
       fetch("/api/files/list", {
-        headers: { Authorization: `Bearer ${session.accessToken}` },
+        headers: { Authorization: `Bearer ${session.user.accessToken}` },
       })
         .then((res) => res.json())
-        .then((data) => setFiles(data.files));
+        .then((data) => setFiles(data.files))
+        .catch((err) => console.error("Error fetching files:", err));
     }
   }, [session]);
 
+  if (!session) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <div>
-      <h1>Welcome, {session?.user?.name}</h1>
+      <h1>Welcome, {session.user.name}</h1>
       <button onClick={() => signOut()}>Logout</button>
 
       <h2>Uploaded Files</h2>

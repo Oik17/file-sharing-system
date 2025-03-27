@@ -112,7 +112,7 @@ func UploadFilesToS3(c echo.Context) error {
 
 	if parentFolderID != "" {
 		var parentFolder struct {
-			ParentFolders pq.StringArray `json:"parent_folders" db:"parent_folders"` // Correctly use pq.StringArray
+			ParentFolders pq.StringArray `json:"parent_folders" db:"parent_folders"` 
 			Level         int64          `json:"level" db:"level"`
 		}
 
@@ -131,7 +131,6 @@ func UploadFilesToS3(c echo.Context) error {
 			})
 		}
 
-		// No need for sql.NullString checks since pq.StringArray is just []string
 		parentFolders = append(parentFolder.ParentFolders, parentFolderID)
 
 		level = parentFolder.Level + 1

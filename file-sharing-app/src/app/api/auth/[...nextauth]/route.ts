@@ -24,6 +24,5 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// Export NextAuth for GET and POST
 export const GET = NextAuth(authOptions);
 export const POST = NextAuth(authOptions);

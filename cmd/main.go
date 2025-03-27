@@ -38,6 +38,7 @@ func main() {
 	})
 
 	routes.UserRoutes(e)
-	routes.RandomRoutes(e)
+
+	routes.UploadRoutes(e)
 	e.Start(":8080")
 }

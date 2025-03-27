@@ -111,10 +111,17 @@ func UploadFilesToS3(c echo.Context) error {
 	var level int64 = 0
 
 	if parentFolderID != "" {
-		var parentFolder models.File
-		err := database.DB.Db.Get(&parentFolder,
-			"SELECT parent_folders, level FROM files WHERE id = $1 AND user_id = $2",
-			parentFolderID, userID)
+		var parentFolder struct {
+			ParentFolders pq.StringArray `json:"parent_folders" db:"parent_folders"` // Correctly use pq.StringArray
+			Level         int64          `json:"level" db:"level"`
+		}
+
+		err := database.DB.Db.Get(&parentFolder, `
+			SELECT COALESCE(parent_folders, ARRAY[]::TEXT[]) AS parent_folders, level 
+			FROM files 
+			WHERE id = $1 AND user_id = $2 AND is_folder = true`,
+			parentFolderID, userID,
+		)
 
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
@@ -124,10 +131,11 @@ func UploadFilesToS3(c echo.Context) error {
 			})
 		}
 
+		// No need for sql.NullString checks since pq.StringArray is just []string
 		parentFolders = append(parentFolder.ParentFolders, parentFolderID)
+
 		level = parentFolder.Level + 1
 	}
-
 	sess, err := initAWSSession()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -204,17 +212,6 @@ func UploadFilesToS3(c echo.Context) error {
 		}
 
 		fileID := uuid.New()
-		// fileRecord := models.File{
-		// 	ID:            fileID,
-		// 	UserID:        userID,
-		// 	ParentFolders: parentFolders,
-		// 	Level:         level,
-		// 	Name:          fileHeader.Filename,
-		// 	FileLink:      s3Key,
-		// 	IsFolder:      false,
-		// 	CreatedAt:     time.Now().UTC().Format(time.RFC3339),
-		// 	UpdatedAt:     time.Now().UTC().Format(time.RFC3339),
-		// }
 
 		_, err = database.DB.Db.NamedExec(`
 				INSERT INTO files (id, user_id, parent_folders, level, name, file_link, is_folder, created_at, updated_at)
@@ -276,7 +273,7 @@ func ListFilesInFolder(c echo.Context) error {
 	var files []models.File
 	var query string
 	var args []interface{}
-	
+
 	if folderID == "" {
 
 		query = "SELECT * FROM files WHERE user_id = $1 AND array_length(parent_folders, 1) IS NULL ORDER BY is_folder DESC, name ASC"
@@ -305,6 +302,7 @@ func ListFilesInFolder(c echo.Context) error {
 
 func CreateFolder(c echo.Context) error {
 	userID := c.Get("user_id").(uuid.UUID)
+
 	folderName := c.FormValue("folder_name")
 	parentFolderID := c.FormValue("parent_folder_id")
 
@@ -319,10 +317,17 @@ func CreateFolder(c echo.Context) error {
 	var level int64 = 0
 
 	if parentFolderID != "" {
-		var parentFolder models.File
-		err := database.DB.Db.Get(&parentFolder,
-			"SELECT parent_folders, level FROM files WHERE id = $1 AND user_id = $2 AND is_folder = true",
-			parentFolderID, userID)
+		var parentFolder struct {
+			ParentFolders pq.StringArray `json:"parent_folders" db:"parent_folders"` // Correctly use pq.StringArray
+			Level         int64          `json:"level" db:"level"`
+		}
+
+		err := database.DB.Db.Get(&parentFolder, `
+			SELECT COALESCE(parent_folders, ARRAY[]::TEXT[]) AS parent_folders, level 
+			FROM files 
+			WHERE id = $1 AND user_id = $2 AND is_folder = true`,
+			parentFolderID, userID,
+		)
 
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
@@ -332,28 +337,26 @@ func CreateFolder(c echo.Context) error {
 			})
 		}
 
+		// No need for sql.NullString checks since pq.StringArray is just []string
 		parentFolders = append(parentFolder.ParentFolders, parentFolderID)
+
 		level = parentFolder.Level + 1
 	}
-
-	// Create folder record in database
+	log.Println(level)
 	folderID := uuid.New()
-	folderRecord := models.File{
-		ID:            folderID,
-		UserID:        userID,
-		ParentFolders: parentFolders,
-		Level:         level,
-		Name:          folderName,
-		IsFolder:      true,
-		CreatedAt:     time.Now().UTC().Format(time.RFC3339),
-		UpdatedAt:     time.Now().UTC().Format(time.RFC3339),
-	}
-
 	_, err := database.DB.Db.NamedExec(`
-        INSERT INTO files (id, user_id, parent_folders, level, name, is_folder, created_at, updated_at)
-        VALUES (:id, :user_id, :parent_folders, :level, :name, :is_folder, :created_at, :updated_at)
-    `, folderRecord)
-
+    INSERT INTO files (id, user_id, parent_folders, level, name, is_folder, created_at, updated_at)
+    VALUES (:id, :user_id, :parent_folders, :level, :name, :is_folder, :created_at, :updated_at)
+`, map[string]interface{}{
+		"id":             folderID,
+		"user_id":        userID,
+		"parent_folders": pq.Array(parentFolders),
+		"level":          level,
+		"name":           folderName,
+		"is_folder":      true,
+		"created_at":     time.Now().UTC().Format(time.RFC3339),
+		"updated_at":     time.Now().UTC().Format(time.RFC3339),
+	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"message": "Failed to create folder",

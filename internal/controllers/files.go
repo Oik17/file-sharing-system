@@ -274,12 +274,21 @@ func ListFilesInFolder(c echo.Context) error {
 	var args []interface{}
 
 	if folderID == "" {
-
-		query = "SELECT * FROM files WHERE user_id = $1 AND array_length(parent_folders, 1) IS NULL ORDER BY is_folder DESC, name ASC"
+		query = `
+			SELECT id, name, user_id, is_folder, parent_folders::TEXT[] 
+			FROM files 
+			WHERE user_id = $1 
+			AND array_length(parent_folders, 1) IS NULL 
+			ORDER BY is_folder DESC, name ASC`
 		args = []interface{}{userID}
 	} else {
-
-		query = "SELECT * FROM files WHERE user_id = $1 AND $2 = ANY(parent_folders) AND array_length(parent_folders, 1) > 0 ORDER BY is_folder DESC, name ASC"
+		query = `
+			SELECT id, name, user_id, is_folder, parent_folders::TEXT[] 
+			FROM files 
+			WHERE user_id = $1 
+			AND $2 = ANY(parent_folders) 
+			AND array_length(parent_folders, 1) > 0 
+			ORDER BY is_folder DESC, name ASC`
 		args = []interface{}{userID, folderID}
 	}
 

@@ -382,3 +382,30 @@ func CreateFolder(c echo.Context) error {
 		"status": "true",
 	})
 }
+
+func ListUserFolders(c echo.Context) error {
+	userID := c.Get("user_id").(uuid.UUID)
+
+	var folders []models.File
+
+	query := `
+		SELECT id, name, user_id, parent_folders, level, created_at, updated_at
+		FROM files
+		WHERE user_id = $1 AND is_folder = true
+		ORDER BY level ASC, name ASC`
+
+	err := database.DB.Db.Select(&folders, query, userID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "Failed to retrieve folders",
+			"data":    err.Error(),
+			"status":  "false",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "Folders retrieved successfully",
+		"data":    folders,
+		"status":  "true",
+	})
+}

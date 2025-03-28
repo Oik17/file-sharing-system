@@ -1,19 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { 
+  FolderIcon, 
+  FileIcon, 
+  LogOutIcon, 
+  UploadCloudIcon, 
+  FolderPlusIcon 
+} from 'lucide-react';
 
 export default function Dashboard() {
     const [files, setFiles] = useState<File[]>([]);
     const [folders, setFolders] = useState<string[]>([]);
     const [folderName, setFolderName] = useState('');
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
 
     useEffect(() => {
         const token = localStorage.getItem('jwt_token');
 
         if (!token) {
-            router.push('/login'); // ✅ Redirect to login if no token
+            router.push('/login');
             return;
         }
 
@@ -37,12 +46,12 @@ export default function Dashboard() {
 
         const token = localStorage.getItem('jwt_token');
         if (!token) {
-            router.push('/login'); // ✅ Redirect if no token
+            router.push('/login');
             return;
         }
+        
         try {
-            
-        console.log({token})
+            setIsUploading(true);
             const response = await fetch('http://localhost:8080/upload', {
                 method: 'POST',
                 body: formData,
@@ -56,42 +65,43 @@ export default function Dashboard() {
             setFiles(prev => [...prev, ...Array.from(selectedFiles)]);
         } catch (error) {
             console.error('Error uploading files:', error);
+        } finally {
+            setIsUploading(false);
         }
     };
 
-        const handleCreateFolder = async () => {
-            if (!folderName.trim()) return;
+    const handleCreateFolder = async () => {
+        if (!folderName.trim()) return;
+    
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+            router.push('/login');
+            return;
+        }
+    
+        const formData = new FormData();
+        formData.append("folder_name", folderName); 
         
-            const token = localStorage.getItem('jwt_token');
-            if (!token) {
-                router.push('/login');
-                return;
+        try {
+            const response = await fetch('http://localhost:8080/files/createFolder', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}` 
+                },
+                body: formData
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to create folder');
             }
-        
-            const formData = new FormData();
-            formData.append("folder_name", folderName); 
             
-            try {
-                const response = await fetch('http://localhost:8080/files/createFolder', {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${token}` 
-                    },
-                    body: formData
-                });
-        
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Failed to create folder');
-                }
-                
-                setFolders(prev => [...prev, folderName]);
-                setFolderName('');
-            } catch (error) {
-                console.error('Error creating folder:', error);
-            }
-        };
-      
+            setFolders(prev => [...prev, folderName]);
+            setFolderName('');
+        } catch (error) {
+            console.error('Error creating folder:', error);
+        }
+    };
 
     const handleLogout = () => {
         localStorage.removeItem('jwt_token');
@@ -99,51 +109,113 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="p-6">
-            <div className="flex justify-between">
-                <h1 className="text-2xl font-bold">Dashboard</h1>
-                <button onClick={handleLogout} className="bg-red-500 text-white p-2 rounded">
-                    Logout
-                </button>
-            </div>
+        <div className="min-h-screen bg-gray-50 p-8">
+            <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 flex justify-between items-center">
+                    <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+                        <FolderIcon className="w-10 h-10" />
+                        Dashboard
+                    </h1>
+                    <button 
+                        onClick={handleLogout} 
+                        className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2"
+                    >
+                        <LogOutIcon className="w-5 h-5" />
+                        Logout
+                    </button>
+                </div>
 
-            {/* File Upload */}
-            <div className="mt-4">
-                <input type="file" multiple onChange={handleFileUpload} className="border p-2" />
-            </div>
+                {/* Actions Container */}
+                <div className="p-6 grid md:grid-cols-2 gap-6">
+                    {/* File Upload */}
+                    <div className="bg-gray-100 rounded-lg p-4 border-2 border-dashed border-blue-200">
+                        <input 
+                            type="file" 
+                            multiple 
+                            ref={fileInputRef}
+                            onChange={handleFileUpload} 
+                            className="hidden" 
+                        />
+                        <button 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-full flex items-center justify-center gap-3 bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition-all"
+                            disabled={isUploading}
+                        >
+                            <UploadCloudIcon />
+                            {isUploading ? 'Uploading...' : 'Upload Files'}
+                        </button>
+                    </div>
 
-            {/* Folder Creation */}
-            <div className="mt-4">
-                <input 
-                    type="text" 
-                    value={folderName} 
-                    onChange={(e) => setFolderName(e.target.value)}
-                    placeholder="Enter folder name" 
-                    className="border p-2 mr-2"
-                />
-                <button onClick={handleCreateFolder} className="bg-blue-500 text-white p-2 rounded">
-                    Create Folder
-                </button>
-            </div>
+                    {/* Folder Creation */}
+                    <div className="bg-gray-100 rounded-lg p-4 border-2 border-dashed border-green-200">
+                        <div className="flex">
+                            <input 
+                                type="text" 
+                                value={folderName} 
+                                onChange={(e) => setFolderName(e.target.value)}
+                                placeholder="Enter folder name" 
+                                className="flex-grow p-2 rounded-l-lg border focus:ring-2 focus:ring-green-500"
+                            />
+                            <button 
+                                onClick={handleCreateFolder} 
+                                className="bg-green-500 text-white p-2 rounded-r-lg hover:bg-green-600 transition-all flex items-center gap-2"
+                            >
+                                <FolderPlusIcon />
+                                Create
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-            {/* Folder List */}
-            <div className="mt-6">
-                <h2 className="text-xl font-semibold">Folders</h2>
-                <ul>
-                    {folders.map((folder, idx) => (
-                        <li key={idx} className="border p-2 my-1">📁 {folder}</li>
-                    ))}
-                </ul>
-            </div>
+                {/* Lists Container */}
+                <div className="p-6 grid md:grid-cols-2 gap-6">
+                    {/* Folder List */}
+                    <div>
+                        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                            <FolderIcon className="w-6 h-6 text-blue-500" />
+                            Folders
+                        </h2>
+                        {folders.length === 0 ? (
+                            <p className="text-gray-500 italic">No folders yet</p>
+                        ) : (
+                            <ul className="space-y-2">
+                                {folders.map((folder, idx) => (
+                                    <li 
+                                        key={idx} 
+                                        className="bg-blue-50 p-3 rounded-lg flex items-center gap-3 hover:bg-blue-100 transition-all"
+                                    >
+                                        <FolderIcon className="w-5 h-5 text-blue-500" />
+                                        {folder}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
 
-            {/* File List */}
-            <div className="mt-6">
-                <h2 className="text-xl font-semibold">Files</h2>
-                <ul>
-                    {files.map((file, idx) => (
-                        <li key={idx} className="border p-2 my-1">📄 {file.name}</li>
-                    ))}
-                </ul>
+                    {/* File List */}
+                    <div>
+                        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                            <FileIcon className="w-6 h-6 text-green-500" />
+                            Files
+                        </h2>
+                        {files.length === 0 ? (
+                            <p className="text-gray-500 italic">No files uploaded</p>
+                        ) : (
+                            <ul className="space-y-2">
+                                {files.map((file, idx) => (
+                                    <li 
+                                        key={idx} 
+                                        className="bg-green-50 p-3 rounded-lg flex items-center gap-3 hover:bg-green-100 transition-all"
+                                    >
+                                        <FileIcon className="w-5 h-5 text-green-500" />
+                                        {file.name}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );

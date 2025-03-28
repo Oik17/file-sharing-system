@@ -345,7 +345,7 @@ func CreateFolder(c echo.Context) error {
 			})
 		}
 
-		// No need for sql.NullString checks since pq.StringArray is just []string
+		
 		parentFolders = append(parentFolder.ParentFolders, parentFolderID)
 
 		level = parentFolder.Level + 1

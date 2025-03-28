@@ -59,33 +59,39 @@ export default function Dashboard() {
         }
     };
 
-    const handleCreateFolder = async () => {
-        if (!folderName.trim()) return;
-
-        const token = localStorage.getItem('jwt_token');
-        if (!token) {
-            router.push('/login'); // ✅ Redirect if no token
-            return;
-        }
-
-        try {
-            const response = await fetch('http://localhost:8080/files/createFolder', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({ name: folderName })
-            });
-
-            if (!response.ok) throw new Error('Failed to create folder');
+        const handleCreateFolder = async () => {
+            if (!folderName.trim()) return;
+        
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                router.push('/login');
+                return;
+            }
+        
+            const formData = new FormData();
+            formData.append("folder_name", folderName); 
             
-            setFolders(prev => [...prev, folderName]);
-            setFolderName('');
-        } catch (error) {
-            console.error('Error creating folder:', error);
-        }
-    };
+            try {
+                const response = await fetch('http://localhost:8080/files/createFolder', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${token}` 
+                    },
+                    body: formData
+                });
+        
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to create folder');
+                }
+                
+                setFolders(prev => [...prev, folderName]);
+                setFolderName('');
+            } catch (error) {
+                console.error('Error creating folder:', error);
+            }
+        };
+      
 
     const handleLogout = () => {
         localStorage.removeItem('jwt_token');

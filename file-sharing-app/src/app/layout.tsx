@@ -1,13 +1,27 @@
-import Providers from "@/components/Providers"; // Import the wrapper
+// src/app/layout.tsx
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { AuthProvider } from '@/context/AuthContext'
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata = {
+  title: 'File Sharing System',
+  description: 'A secure file sharing system with folder support',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body suppressHydrationWarning>
-        <Providers> {/* Client Component inside body */}
+      <body className={inter.className} suppressHydrationWarning>
+        <AuthProvider>
           {children}
-        </Providers>
+        </AuthProvider>
       </body>
     </html>
-  );
+  )
 }

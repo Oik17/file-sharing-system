@@ -1,10 +1,9 @@
-"use client";
-
+// src/pages/Dashboard.tsx
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import FileList from '../../components/FileList';
-import FileUpload from '../../components/FileUpload';
-import CreateFolder from '../../components/CreateFolder';
+import { useAuth } from '../context/AuthContext';
+import FileList from '../components/FileList';
+import FileUpload from '../components/FileUpload';
+import CreateFolder from '../components/CreateFolder';
 
 const Dashboard = () => {
     const { user, logout } = useAuth();

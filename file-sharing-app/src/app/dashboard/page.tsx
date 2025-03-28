@@ -40,8 +40,9 @@ export default function Dashboard() {
             router.push('/login'); // ✅ Redirect if no token
             return;
         }
-
         try {
+            
+        console.log({token})
             const response = await fetch('http://localhost:8080/upload', {
                 method: 'POST',
                 body: formData,

@@ -10,9 +10,13 @@ export default function Login() {
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('access_token');
 
+        console.log("Extracted Token:", token); // ✅ Log the token first
+
         if (token) {
             localStorage.setItem('jwt_token', token);
-            router.push('/dashboard'); // ✅ Redirect to dashboard after login
+            setTimeout(() => { // ✅ Give some time before redirecting
+                router.push('/dashboard');
+            }, 1000);
         }
     }, []);
 

@@ -24,7 +24,6 @@ var (
 		Endpoint:     google.Endpoint,
 	}
 	oauthStateString = "random"
-	
 )
 
 func HandleCallback(c echo.Context) error {
@@ -54,8 +53,6 @@ func HandleCallback(c echo.Context) error {
 		return c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 	userInfo["access_token"] = token.AccessToken
-	log.Println(userInfo)
-
 	user, err := services.CreateOrUpdateUser(userInfo)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
@@ -64,20 +61,9 @@ func HandleCallback(c echo.Context) error {
 			"status":  false,
 		})
 	}
-
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{
-			"message": "Failed to generate token",
-			"data":    err.Error(),
-			"status":  false,
-		})
-	}
-
-	return c.JSON(http.StatusOK, echo.Map{
-		"message": "Successfully logged in",
-		"data":    user,
-		"status":  true,
-	})
+	token.AccessToken = user.AccessToken
+	redirectURL := fmt.Sprintf("http://localhost:3000/login?access_token=%s", token.AccessToken)
+	return c.Redirect(http.StatusSeeOther, redirectURL)
 }
 
 func HandleLogin(c echo.Context) error {

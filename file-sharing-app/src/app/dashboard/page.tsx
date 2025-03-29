@@ -113,7 +113,6 @@ export default function Dashboard() {
         const newBreadcrumbs = breadcrumbs.slice(0, index + 1);
         setBreadcrumbs(newBreadcrumbs);
         
-        // Set current folder to the last breadcrumb or empty for root
         setCurrentFolderId(newBreadcrumbs.length > 0 ? newBreadcrumbs[newBreadcrumbs.length - 1].id : '');
     };
 
@@ -173,6 +172,51 @@ export default function Dashboard() {
             console.error("Upload failed:", err);
         }
     };
+
+    const handleCreateFolder = async () => {
+        if (!folderName.trim()) {
+            console.error("Folder name is required");
+            return;
+        }
+    
+        const token = localStorage.getItem("jwt_token");
+        if (!token) {
+            router.push("/login");
+            return;
+        }
+    
+        const formData = new FormData();
+        formData.append("folder_name", folderName);
+        if (currentFolderId) {
+            formData.append("parent_folder_id", currentFolderId);
+        }
+    
+        try {
+            const response = await fetch("http://localhost:8080/files/createFolder", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                 
+                },
+                body: formData,
+            });
+    
+            const data = await response.json();
+    
+            if (data.status === "true") {
+                console.log("Folder created successfully:", data.data);
+                setFolderName(""); // Clear input field
+                setShowNewFolderInput(false); // Hide input field after creation
+                fetchFilesInFolder(); // Refresh file list
+            } else {
+                console.error("Error creating folder:", data.message);
+            }
+        } catch (err) {
+            console.error("Folder creation failed:", err);
+        }
+    };
+    
+    
     
     return (
         <div className="min-h-screen bg-gray-100">
@@ -256,9 +300,11 @@ export default function Dashboard() {
                             value={folderName}
                             onChange={(e) => setFolderName(e.target.value)}
                             placeholder="Enter folder name"
+                            
                             className="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <button 
+                            onClick={handleCreateFolder}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
                         >
                             Create

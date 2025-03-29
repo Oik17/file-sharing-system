@@ -29,6 +29,12 @@ interface File {
   is_folder: boolean;
   user_id: string;
   parent_folders: string[] | null;
+  file_link: FileLink
+}
+
+interface FileLink{
+    String: string;
+    Valid: boolean
 }
 
 export default function Dashboard() {
@@ -124,11 +130,50 @@ export default function Dashboard() {
         router.push('/login');
     };
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // File upload logic would go here
-        console.log("File upload triggered");
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { 
+        const files = e.target.files;
+        if (!files || files.length === 0) {
+            console.error("No files selected.");
+            return;
+        }
+    
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+            router.push('/login');
+            return;
+        }
+    
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            formData.append("files", files[i]);  
+        }
+    
+        if (currentFolderId) {
+            formData.append("parent_folder_id", currentFolderId);
+        }
+    
+        try {
+            const response = await fetch("http://localhost:8080/upload", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+            });
+    
+            const data = await response.json();
+    
+            if (data.status === "true") {
+                console.log("Files uploaded successfully:", data.data);
+                fetchFilesInFolder();  // Refresh file list after upload
+            } else {
+                console.error("Error uploading files:", data.message);
+            }
+        } catch (err) {
+            console.error("Upload failed:", err);
+        }
     };
-
+    
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Header */}
@@ -203,7 +248,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* New Folder Input (conditionally rendered) */}
+               
                 {showNewFolderInput && (
                     <div className="bg-white shadow-md rounded-lg p-4 mb-6 flex items-center gap-4">
                         <input
@@ -227,7 +272,7 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                {/* Content Area */}
+                
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
                     <div className="p-6 border-b border-gray-200">
                         <h2 className="text-xl font-bold text-gray-900">
@@ -278,6 +323,9 @@ export default function Dashboard() {
                                         <div className="p-4">
                                             <h3 className="font-medium text-gray-900 truncate">{file.name}</h3>
                                             <p className="text-sm text-gray-600 mt-1">File</p>
+                                            {/* <p>{file.file_link.Strinx`g}</p> */}
+                                            <a href={file.file_link.String} target="_blank" rel="noopener noreferrer">Open File</a>
+
                                         </div>
                                     </div>
                                 ))}

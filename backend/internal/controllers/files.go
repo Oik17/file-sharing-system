@@ -221,7 +221,7 @@ func UploadFilesToS3(c echo.Context) error {
 			"parent_folders": pq.Array(parentFolders),
 			"level":          level,
 			"name":           fileHeader.Filename,
-			"file_link":      s3Key,
+			"file_link":      urlStr,
 			"is_folder":      false,
 			"created_at":     time.Now().UTC().Format(time.RFC3339),
 			"updated_at":     time.Now().UTC().Format(time.RFC3339),
@@ -349,7 +349,7 @@ func ListFilesInFolder(c echo.Context) error {
 
 	if folderID == "" {
 		query = `
-			SELECT id, name, user_id, is_folder, parent_folders::TEXT[] 
+			SELECT id, name, user_id, is_folder, parent_folders::TEXT[], file_link 
 			FROM files 
 			WHERE user_id = $1 
 			AND array_length(parent_folders, 1) IS NULL 
@@ -357,7 +357,7 @@ func ListFilesInFolder(c echo.Context) error {
 		args = []interface{}{userID}
 	} else {
 		query = `
-			SELECT id, name, user_id, is_folder, parent_folders::TEXT[] 
+			SELECT id, name, user_id, is_folder, parent_folders::TEXT[], file_link 
 			FROM files 
 			WHERE user_id = $1 
 			AND $2 = ANY(parent_folders) 

@@ -8,7 +8,9 @@ import {
   LogOutIcon, 
   UploadCloudIcon, 
   FolderPlusIcon,
-  ChevronLeftIcon
+  ChevronLeftIcon,
+  HomeIcon,
+  PlusIcon
 } from 'lucide-react';
 
 interface Folder {
@@ -36,6 +38,7 @@ export default function Dashboard() {
     const [isUploading, setIsUploading] = useState(false);
     const [currentFolderId, setCurrentFolderId] = useState('');
     const [breadcrumbs, setBreadcrumbs] = useState<{id: string, name: string}[]>([]);
+    const [showNewFolderInput, setShowNewFolderInput] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
 
@@ -116,25 +119,49 @@ export default function Dashboard() {
         }
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem('jwt_token');
+        router.push('/login');
+    };
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // File upload logic would go here
+        console.log("File upload triggered");
+    };
+
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden">
-                <div className="p-6">
-                    <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                        <FolderIcon className="w-10 h-10 text-blue-500" />
-                        Dashboard
+        <div className="min-h-screen bg-gray-100">
+            {/* Header */}
+            <header className="bg-white shadow-md">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                        <FolderIcon className="w-8 h-8 text-blue-600" />
+                        <span>File Manager</span>
                     </h1>
-                    
+                    <button 
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800 font-medium transition-colors"
+                    >
+                        <LogOutIcon className="w-5 h-5" />
+                        Logout
+                    </button>
+                </div>
+            </header>
+
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Action Bar */}
+                <div className="bg-white shadow-md rounded-lg p-4 mb-6 flex flex-wrap gap-4 items-center">
                     {/* Breadcrumbs */}
-                    <div className="flex items-center mt-4 text-sm">
+                    <div className="flex items-center flex-grow overflow-x-auto whitespace-nowrap py-2 text-base">
                         <button 
                             onClick={() => {
                                 setBreadcrumbs([]);
                                 setCurrentFolderId('');
                             }}
-                            className="text-blue-500 hover:underline"
+                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium"
                         >
-                            Home
+                            <HomeIcon className="w-5 h-5" />
+                            <span>Home</span>
                         </button>
                         
                         {breadcrumbs.map((crumb, idx) => (
@@ -142,57 +169,123 @@ export default function Dashboard() {
                                 <span className="mx-2 text-gray-500">/</span>
                                 <button 
                                     onClick={() => handleBreadcrumbClick(idx)}
-                                    className="text-blue-500 hover:underline"
+                                    className="text-blue-600 hover:text-blue-800 font-medium"
                                 >
                                     {crumb.name}
                                 </button>
                             </div>
                         ))}
                     </div>
-                    
-                    {breadcrumbs.length > 0 && (
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                        <input 
+                            type="file" 
+                            ref={fileInputRef} 
+                            onChange={handleFileUpload} 
+                            className="hidden" 
+                            multiple 
+                        />
                         <button 
-                            onClick={handleGoBack} 
-                            className="mt-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded flex items-center gap-2"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
                         >
-                            <ChevronLeftIcon className="w-4 h-4" />
-                            Back
+                            <UploadCloudIcon className="w-5 h-5" />
+                            Upload
                         </button>
-                    )}
+                        <button 
+                            onClick={() => setShowNewFolderInput(!showNewFolderInput)}
+                            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                        >
+                            <FolderPlusIcon className="w-5 h-5" />
+                            New Folder
+                        </button>
+                    </div>
                 </div>
 
-                <div className="p-6">
-                    <h2 className="text-xl font-semibold mb-4">Files and Folders</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {files.filter(item => item.is_folder).map((folder) => (
-                            <div 
-                                key={folder.id} 
-                                className="cursor-pointer hover:bg-blue-50 p-4 rounded border border-gray-200 flex items-center gap-3"
-                                onClick={() => handleFolderClick(folder)}
-                            >
-                                <FolderIcon className="w-8 h-8 text-blue-500" />
-                                <span className="truncate">{folder.name}</span>
+                {/* New Folder Input (conditionally rendered) */}
+                {showNewFolderInput && (
+                    <div className="bg-white shadow-md rounded-lg p-4 mb-6 flex items-center gap-4">
+                        <input
+                            type="text"
+                            value={folderName}
+                            onChange={(e) => setFolderName(e.target.value)}
+                            placeholder="Enter folder name"
+                            className="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button 
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                        >
+                            Create
+                        </button>
+                        <button 
+                            onClick={() => setShowNewFolderInput(false)}
+                            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                )}
+
+                {/* Content Area */}
+                <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                    <div className="p-6 border-b border-gray-200">
+                        <h2 className="text-xl font-bold text-gray-900">
+                            {breadcrumbs.length > 0 
+                                ? breadcrumbs[breadcrumbs.length - 1].name 
+                                : 'All Files'}
+                        </h2>
+                    </div>
+
+                    {/* Files and Folders Grid */}
+                    <div className="p-6">
+                        {files.length === 0 ? (
+                            <div className="text-center py-12">
+                                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                    <FolderIcon className="w-8 h-8 text-gray-400" />
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-1">No files found</h3>
+                                <p className="text-gray-600">This folder is empty</p>
                             </div>
-                        ))}
-                        
-                        {files.filter(item => !item.is_folder).map((file) => (
-                            <div 
-                                key={file.id} 
-                                className="p-4 rounded border border-gray-200 flex items-center gap-3"
-                            >
-                                <FileIcon className="w-8 h-8 text-green-500" />
-                                <span className="truncate">{file.name}</span>
-                            </div>
-                        ))}
-                        
-                        {files.length === 0 && (
-                            <div className="col-span-3 text-center py-8 text-gray-500">
-                                No files or folders found in this location
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {/* Folders */}
+                                {files.filter(item => item.is_folder).map((folder) => (
+                                    <div 
+                                        key={folder.id} 
+                                        className="cursor-pointer group bg-white border border-gray-200 hover:border-blue-500 hover:shadow-md rounded-lg overflow-hidden transition-all"
+                                        onClick={() => handleFolderClick(folder)}
+                                    >
+                                        <div className="bg-blue-50 p-4 flex justify-center">
+                                            <FolderIcon className="w-12 h-12 text-blue-600 group-hover:text-blue-700" />
+                                        </div>
+                                        <div className="p-4">
+                                            <h3 className="font-medium text-gray-900 truncate">{folder.name}</h3>
+                                            <p className="text-sm text-gray-600 mt-1">Folder</p>
+                                        </div>
+                                    </div>
+                                ))}
+                                
+                                {/* Files */}
+                                {files.filter(item => !item.is_folder).map((file) => (
+                                    <div 
+                                        key={file.id} 
+                                        className="bg-white border border-gray-200 hover:border-green-500 hover:shadow-md rounded-lg overflow-hidden transition-all"
+                                    >
+                                        <div className="bg-green-50 p-4 flex justify-center">
+                                            <FileIcon className="w-12 h-12 text-green-600" />
+                                        </div>
+                                        <div className="p-4">
+                                            <h3 className="font-medium text-gray-900 truncate">{file.name}</h3>
+                                            <p className="text-sm text-gray-600 mt-1">File</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     );
 }

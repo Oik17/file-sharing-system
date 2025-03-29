@@ -12,5 +12,5 @@ func UploadRoutes(e *echo.Echo) {
 	e.POST("/upload", controllers.UploadFilesToS3, middleware.Protected)
 	e.GET("/files/get", controllers.ListFilesInFolder, middleware.Protected)
 	e.POST("/files/createFolder", controllers.CreateFolder, middleware.Protected)
-	e.GET("/files/getFolder", controllers.ListUserFolders, middleware.Protected)
+	e.GET("/files/list", controllers.ListUserFolders, middleware.Protected)
 }

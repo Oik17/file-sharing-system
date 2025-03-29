@@ -112,7 +112,7 @@ func UploadFilesToS3(c echo.Context) error {
 
 	if parentFolderID != "" {
 		var parentFolder struct {
-			ParentFolders pq.StringArray `json:"parent_folders" db:"parent_folders"` 
+			ParentFolders pq.StringArray `json:"parent_folders" db:"parent_folders"`
 			Level         int64          `json:"level" db:"level"`
 		}
 
@@ -265,6 +265,80 @@ func UploadFilesToS3(c echo.Context) error {
 	})
 }
 
+func CreateFolder(c echo.Context) error {
+	userID := c.Get("user_id").(uuid.UUID)
+
+	folderName := c.FormValue("folder_name")
+	parentFolderID := c.FormValue("parent_folder_id")
+
+	if folderName == "" {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "Folder name is required",
+			"status":  "false",
+		})
+	}
+
+	var parentFolders []string
+	var level int64 = 0
+
+	if parentFolderID != "" {
+		var parentFolder struct {
+			ParentFolders pq.StringArray `json:"parent_folders" db:"parent_folders"` // Correctly use pq.StringArray
+			Level         int64          `json:"level" db:"level"`
+		}
+
+		err := database.DB.Db.Get(&parentFolder, `
+			SELECT COALESCE(parent_folders, ARRAY[]::TEXT[]) AS parent_folders, level 
+			FROM files 
+			WHERE id = $1 AND user_id = $2 AND is_folder = true`,
+			parentFolderID, userID,
+		)
+
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "Invalid parent folder",
+				"data":    err.Error(),
+				"status":  "false",
+			})
+		}
+
+		parentFolders = append(parentFolder.ParentFolders, parentFolderID)
+
+		level = parentFolder.Level + 1
+	}
+	log.Println(level)
+	folderID := uuid.New()
+	_, err := database.DB.Db.NamedExec(`
+    INSERT INTO files (id, user_id, parent_folders, level, name, is_folder, created_at, updated_at)
+    VALUES (:id, :user_id, :parent_folders, :level, :name, :is_folder, :created_at, :updated_at)
+`, map[string]interface{}{
+		"id":             folderID,
+		"user_id":        userID,
+		"parent_folders": pq.Array(parentFolders),
+		"level":          level,
+		"name":           folderName,
+		"is_folder":      true,
+		"created_at":     time.Now().UTC().Format(time.RFC3339),
+		"updated_at":     time.Now().UTC().Format(time.RFC3339),
+	})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "Failed to create folder",
+			"data":    err.Error(),
+			"status":  "false",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "Folder created successfully",
+		"data": map[string]string{
+			"id":   folderID.String(),
+			"name": folderName,
+		},
+		"status": "true",
+	})
+}
+
 func ListFilesInFolder(c echo.Context) error {
 	userID := c.Get("user_id").(uuid.UUID)
 	folderID := c.QueryParam("folder_id")
@@ -308,88 +382,13 @@ func ListFilesInFolder(c echo.Context) error {
 	})
 }
 
-func CreateFolder(c echo.Context) error {
-	userID := c.Get("user_id").(uuid.UUID)
-
-	folderName := c.FormValue("folder_name")
-	parentFolderID := c.FormValue("parent_folder_id")
-
-	if folderName == "" {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"message": "Folder name is required",
-			"status":  "false",
-		})
-	}
-
-	var parentFolders []string
-	var level int64 = 0
-
-	if parentFolderID != "" {
-		var parentFolder struct {
-			ParentFolders pq.StringArray `json:"parent_folders" db:"parent_folders"` // Correctly use pq.StringArray
-			Level         int64          `json:"level" db:"level"`
-		}
-
-		err := database.DB.Db.Get(&parentFolder, `
-			SELECT COALESCE(parent_folders, ARRAY[]::TEXT[]) AS parent_folders, level 
-			FROM files 
-			WHERE id = $1 AND user_id = $2 AND is_folder = true`,
-			parentFolderID, userID,
-		)
-
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"message": "Invalid parent folder",
-				"data":    err.Error(),
-				"status":  "false",
-			})
-		}
-
-		
-		parentFolders = append(parentFolder.ParentFolders, parentFolderID)
-
-		level = parentFolder.Level + 1
-	}
-	log.Println(level)
-	folderID := uuid.New()
-	_, err := database.DB.Db.NamedExec(`
-    INSERT INTO files (id, user_id, parent_folders, level, name, is_folder, created_at, updated_at)
-    VALUES (:id, :user_id, :parent_folders, :level, :name, :is_folder, :created_at, :updated_at)
-`, map[string]interface{}{
-		"id":             folderID,
-		"user_id":        userID,
-		"parent_folders": pq.Array(parentFolders),
-		"level":          level,
-		"name":           folderName,
-		"is_folder":      true,
-		"created_at":     time.Now().UTC().Format(time.RFC3339),
-		"updated_at":     time.Now().UTC().Format(time.RFC3339),
-	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"message": "Failed to create folder",
-			"data":    err.Error(),
-			"status":  "false",
-		})
-	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "Folder created successfully",
-		"data": map[string]string{
-			"id":   folderID.String(),
-			"name": folderName,
-		},
-		"status": "true",
-	})
-}
-
 func ListUserFolders(c echo.Context) error {
 	userID := c.Get("user_id").(uuid.UUID)
 
 	var folders []models.File
 
 	query := `
-		SELECT id, name, user_id, parent_folders, level, created_at, updated_at
+		SELECT id, name, user_id, parent_folders::TEXT[], level, is_folder, created_at, updated_at
 		FROM files
 		WHERE user_id = $1 AND is_folder = true
 		ORDER BY level ASC, name ASC`

@@ -346,13 +346,12 @@ func ListFilesInFolder(c echo.Context) error {
 	var files []models.File
 	var query string
 	var args []interface{}
-
 	if folderID == "" {
 		query = `
 			SELECT id, name, user_id, is_folder, parent_folders::TEXT[], file_link 
 			FROM files 
 			WHERE user_id = $1 
-			AND array_length(parent_folders, 1) IS NULL 
+			AND (parent_folders IS NULL OR array_length(parent_folders, 1) = 0) 
 			ORDER BY is_folder DESC, name ASC`
 		args = []interface{}{userID}
 	} else {
@@ -360,11 +359,11 @@ func ListFilesInFolder(c echo.Context) error {
 			SELECT id, name, user_id, is_folder, parent_folders::TEXT[], file_link 
 			FROM files 
 			WHERE user_id = $1 
-			AND $2 = ANY(parent_folders) 
-			AND array_length(parent_folders, 1) > 0 
+			AND parent_folders[array_length(parent_folders, 1)] = $2 
 			ORDER BY is_folder DESC, name ASC`
 		args = []interface{}{userID, folderID}
 	}
+	
 
 	err := database.DB.Db.Select(&files, query, args...)
 	if err != nil {
@@ -389,9 +388,12 @@ func ListUserFolders(c echo.Context) error {
 
 	query := `
 		SELECT id, name, user_id, parent_folders::TEXT[], level, is_folder, created_at, updated_at
-		FROM files
-		WHERE user_id = $1 AND is_folder = true
-		ORDER BY level ASC, name ASC`
+FROM files
+WHERE user_id = $1 
+AND is_folder = true
+AND ($2 IS NULL OR parent_folders[array_length(parent_folders, 1)] = $2)
+ORDER BY level ASC, name ASC;
+`
 
 	err := database.DB.Db.Select(&folders, query, userID)
 	if err != nil {

@@ -12,6 +12,8 @@ import {
   HomeIcon,
   PlusIcon
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+
 
 interface Folder {
   id: string;
@@ -47,6 +49,7 @@ export default function Dashboard() {
     const [showNewFolderInput, setShowNewFolderInput] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
+    const [open, setOpen] = useState(false);
 
     useEffect(() => {
         fetchAllFolders();
@@ -369,9 +372,23 @@ export default function Dashboard() {
                                         <div className="p-4">
                                             <h3 className="font-medium text-gray-900 truncate">{file.name}</h3>
                                             <p className="text-sm text-gray-600 mt-1">File</p>
-                                            {/* <p>{file.file_link.Strinx`g}</p> */}
-                                            <a href={file.file_link.String} target="_blank" rel="noopener noreferrer">Open File</a>
 
+                                            <Dialog open={open} onOpenChange={setOpen}>
+                                                <DialogTrigger asChild>
+                                                    <button className="text-blue-500 underline">Open File</button>
+                                                </DialogTrigger>
+                                                <DialogContent className="w-full max-w-4xl h-[80vh] p-4">
+                                                    <DialogTitle>File Preview</DialogTitle>
+                                                    {file.name.endsWith(".jpg") || file.name.endsWith(".png") ? (
+                                                        <img src={file.file_link.String} className="w-full h-full object-contain" />
+                                                    ) : (
+                                                        <iframe 
+                                                            src={file.file_link.String} 
+                                                            className="w-full h-full border-0"
+                                                        ></iframe>
+                                                    )}
+                                                </DialogContent>
+                                            </Dialog>
                                         </div>
                                     </div>
                                 ))}

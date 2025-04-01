@@ -14,6 +14,7 @@ type File struct {
 	Level         int64          `json:"level" db:"level"`
 	Name          string         `json:"name" db:"name"`
 	FileLink      sql.NullString `json:"file_link" db:"file_link"`
+	ShareLink     sql.NullString `json:"share_link" db:"share_link"`
 	IsFolder      bool           `json:"is_folder" db:"is_folder"`
 	IsStarred     bool           `json:"is_starred" db:"is_starred"`
 	CreatedAt     string         `json:"created_at" db:"created_at"`

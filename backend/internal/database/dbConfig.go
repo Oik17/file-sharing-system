@@ -74,6 +74,7 @@ func runMigrations(db *sqlx.DB) {
 			level BIGINT,
 			name VARCHAR(255),
 			file_link TEXT,
+			share_link TEXT,
 			is_folder BOOLEAN DEFAULT FALSE,
 			is_starred BOOLEAN DEFAULT FALSE,
 			created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

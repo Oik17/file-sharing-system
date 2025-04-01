@@ -166,8 +166,8 @@ func UploadFilesToS3(c echo.Context) error {
 		fileID := uuid.New()
 
 		_, err = database.DB.Db.NamedExec(`
-				INSERT INTO files (id, user_id, parent_folders, level, name, file_link, is_folder, created_at, updated_at)
-				VALUES (:id, :user_id, :parent_folders, :level, :name, :file_link, :is_folder, :created_at, :updated_at)
+				INSERT INTO files (id, user_id, parent_folders, level, name, file_link, share_link, is_folder, created_at, updated_at)
+				VALUES (:id, :user_id, :parent_folders, :level, :name, :file_link, :share_link, :is_folder, :created_at, :updated_at)
 			`, map[string]interface{}{
 			"id":             fileID,
 			"user_id":        userID,
@@ -175,6 +175,7 @@ func UploadFilesToS3(c echo.Context) error {
 			"level":          level,
 			"name":           fileHeader.Filename,
 			"file_link":      urlStr,
+			"share_link":     utils.GenerateLink(),
 			"is_folder":      false,
 			"created_at":     time.Now().UTC().Format(time.RFC3339),
 			"updated_at":     time.Now().UTC().Format(time.RFC3339),

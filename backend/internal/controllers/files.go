@@ -10,62 +10,15 @@ import (
 	"github.com/Oik17/file-sharing-system/internal/models"
 	"github.com/Oik17/file-sharing-system/internal/utils"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
 )
 
-type S3UploadError struct {
-	Stage   string
-	Message string
-	Err     error
-}
-
-func (e *S3UploadError) Error() string {
-	return fmt.Sprintf("%s: %s - %v", e.Stage, e.Message, e.Err)
-}
-
-func validateConfig() error {
-	required := []string{
-		"AWS_REGION",
-		"AWS_ACCESS_KEY_ID",
-		"AWS_SECRET_ACCESS_KEY",
-		"AWS_S3_BUCKET",
-	}
-
-	for _, key := range required {
-		if utils.Config(key) == "" {
-			return fmt.Errorf("missing required configuration: %s", key)
-		}
-	}
-	return nil
-}
-
-func initAWSSession() (*session.Session, error) {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(utils.Config("AWS_REGION")),
-		Credentials: credentials.NewStaticCredentials(
-			utils.Config("AWS_ACCESS_KEY_ID"),
-			utils.Config("AWS_SECRET_ACCESS_KEY"),
-			"",
-		),
-	})
-	if err != nil {
-		return nil, &S3UploadError{
-			Stage:   "AWS Session Creation",
-			Message: "Failed to create AWS session",
-			Err:     err,
-		}
-	}
-	return sess, nil
-}
-
 func UploadFilesToS3(c echo.Context) error {
 
-	if err := validateConfig(); err != nil {
+	if err := utils.ValidateConfig(); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"message": "Configuration Error",
 			"data":    err.Error(),
@@ -135,7 +88,7 @@ func UploadFilesToS3(c echo.Context) error {
 
 		level = parentFolder.Level + 1
 	}
-	sess, err := initAWSSession()
+	sess, err := utils.InitAWSSession()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"message": "AWS Configuration Error",
@@ -363,7 +316,6 @@ func ListFilesInFolder(c echo.Context) error {
 			ORDER BY is_folder DESC, name ASC`
 		args = []interface{}{userID, folderID}
 	}
-	
 
 	err := database.DB.Db.Select(&files, query, args...)
 	if err != nil {

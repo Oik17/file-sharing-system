@@ -72,7 +72,8 @@ export default function SharedFile({ code }: SharedFileProps) {
   const isImage = /\.(jpeg|jpg|gif|png)$/i.test(fileData.name);
   
   // Determine if the file is a PDF
-  const isPdf = fileData.name.toLowerCase().endsWith('.pdf');
+  const isPdf = fileData?.name?.toLowerCase().endsWith('.pdf') ?? false;
+
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">

@@ -8,6 +8,7 @@ import (
 
 	"github.com/Oik17/file-sharing-system/internal/database"
 	"github.com/Oik17/file-sharing-system/internal/models"
+	"github.com/Oik17/file-sharing-system/internal/services"
 	"github.com/Oik17/file-sharing-system/internal/utils"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -176,7 +177,7 @@ func UploadFilesToS3(c echo.Context) error {
 			"name":           fileHeader.Filename,
 			"file_link":      urlStr,
 			"share_link":     utils.GenerateLink(),
-			"is_folder":      false,	
+			"is_folder":      false,
 			"created_at":     time.Now().UTC().Format(time.RFC3339),
 			"updated_at":     time.Now().UTC().Format(time.RFC3339),
 		})
@@ -361,5 +362,20 @@ ORDER BY level ASC, name ASC;
 		"message": "Folders retrieved successfully",
 		"data":    folders,
 		"status":  "true",
+	})
+}
+
+func GetFileByCode(c echo.Context) error {
+	code := c.QueryParam("code")
+	fileURL, err := services.GetFileByCode(code)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": "Failed to get file",
+			"data":    err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Successfully fetched file",
+		"data":    fileURL,
 	})
 }

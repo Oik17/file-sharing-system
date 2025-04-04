@@ -12,8 +12,9 @@ import {
   HomeIcon,
   PlusIcon
 } from 'lucide-react';
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
-
+import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ShareIcon, ClipboardIcon } from "lucide-react"; // Or your icon library
+import { toast } from "react-hot-toast"; // e.g., react-hot-toast or your UI library's toast
 
 interface Folder {
   id: string;
@@ -31,12 +32,18 @@ interface File {
   is_folder: boolean;
   user_id: string;
   parent_folders: string[] | null;
-  file_link: FileLink
+  file_link: FileLink;
+  share_link: ShareLink;
 }
 
 interface FileLink{
     String: string;
     Valid: boolean
+}
+
+interface ShareLink{
+    String: string;
+    Valid: boolean;
 }
 
 export default function Dashboard() {
@@ -175,6 +182,16 @@ export default function Dashboard() {
             console.error("Upload failed:", err);
         }
     };
+    const handleCopy = (shareLink: string) => {
+        navigator.clipboard.writeText(`${shareLink}`)
+          .then(() => {
+            toast.success('Link copied to clipboard');
+          })
+          .catch((error) => {
+            console.error('Failed to copy: ', error);
+            toast.error('Failed to copy link');
+          });
+      };
 
     const handleCreateFolder = async () => {
         if (!folderName.trim()) {
@@ -362,36 +379,73 @@ export default function Dashboard() {
                                 
                                 {/* Files */}
                                 {files.filter(item => !item.is_folder).map((file) => (
-                                    <div 
-                                        key={file.id} 
-                                        className="bg-white border border-gray-200 hover:border-green-500 hover:shadow-md rounded-lg overflow-hidden transition-all"
-                                    >
-                                        <div className="bg-green-50 p-4 flex justify-center">
-                                            <FileIcon className="w-12 h-12 text-green-600" />
-                                        </div>
-                                        <div className="p-4">
-                                            <h3 className="font-medium text-gray-900 truncate">{file.name}</h3>
-                                            <p className="text-sm text-gray-600 mt-1">File</p>
+    <div 
+        key={file.id} 
+        className="bg-white border border-gray-200 hover:border-green-500 hover:shadow-md rounded-lg overflow-hidden transition-all"
+    >
+        <div className="bg-green-50 p-4 flex justify-center">
+            <FileIcon className="w-12 h-12 text-green-600" />
+        </div>
+        <div className="p-4">
+            <h3 className="font-medium text-gray-900 truncate">{file.name}</h3>
+            <p className="text-sm text-gray-600 mt-1">File</p>
+            
+            <div className="mt-3 flex space-x-3">
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogTrigger asChild>
+                        <button className="text-blue-500 underline text-sm">Open File</button>
+                    </DialogTrigger>
+                    <DialogContent className="w-full max-w-4xl h-[80vh] p-4">
+                        <DialogTitle>File Preview</DialogTitle>
+                        {file.name.endsWith(".jpg") || file.name.endsWith(".png") ? (
+                            <img src={file.file_link.String} className="w-full h-full object-contain" />
+                        ) : (
+                            <iframe 
+                                src={file.file_link.String} 
+                                className="w-full h-full border-0"
+                            ></iframe>
+                        )}
+                    </DialogContent>
+                </Dialog>
+                
+                {/* Share Button and Functionality */}
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <button className="text-green-500 underline text-sm flex items-center">
+                            <ShareIcon className="w-4 h-4 mr-1" /> Share
+                        </button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogTitle>Share File</DialogTitle>
+                        <div className="flex items-center space-x-2 mt-4">
+                            <div className="grid flex-1 gap-2">
+                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    Share Link
+                                </label>
+                                <input
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={`${window.location.origin}/share/${file.share_link.String}`}
+                                    readOnly
+                                />
+                            </div>
+                            <button 
+                                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+                                onClick={() => handleCopy(file.share_link.String)}
+>
+                                <ClipboardIcon className="h-4 w-4 mr-1" />
+                                Copy
+                            </button>
+                        </div>
+                        <DialogDescription className="text-xs text-gray-500 mt-2">
+                            Anyone with this link will be able to view this file.
+                        </DialogDescription>
+                    </DialogContent>
+                </Dialog>
+            </div>
+        </div>
+    </div>
+))}
 
-                                            <Dialog open={open} onOpenChange={setOpen}>
-                                                <DialogTrigger asChild>
-                                                    <button className="text-blue-500 underline">Open File</button>
-                                                </DialogTrigger>
-                                                <DialogContent className="w-full max-w-4xl h-[80vh] p-4">
-                                                    <DialogTitle>File Preview</DialogTitle>
-                                                    {file.name.endsWith(".jpg") || file.name.endsWith(".png") ? (
-                                                        <img src={file.file_link.String} className="w-full h-full object-contain" />
-                                                    ) : (
-                                                        <iframe 
-                                                            src={file.file_link.String} 
-                                                            className="w-full h-full border-0"
-                                                        ></iframe>
-                                                    )}
-                                                </DialogContent>
-                                            </Dialog>
-                                        </div>
-                                    </div>
-                                ))}
                             </div>
                         )}
                     </div>

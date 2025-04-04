@@ -176,7 +176,7 @@ func UploadFilesToS3(c echo.Context) error {
 			"name":           fileHeader.Filename,
 			"file_link":      urlStr,
 			"share_link":     utils.GenerateLink(),
-			"is_folder":      false,
+			"is_folder":      false,	
 			"created_at":     time.Now().UTC().Format(time.RFC3339),
 			"updated_at":     time.Now().UTC().Format(time.RFC3339),
 		})
@@ -302,7 +302,7 @@ func ListFilesInFolder(c echo.Context) error {
 	var args []interface{}
 	if folderID == "" {
 		query = `
-			SELECT id, name, user_id, is_folder, parent_folders::TEXT[], file_link 
+			SELECT id, name, user_id, is_folder, parent_folders::TEXT[], file_link, share_link 
 			FROM files 
 			WHERE user_id = $1 
 			AND (parent_folders IS NULL OR array_length(parent_folders, 1) = 0) 
@@ -310,7 +310,7 @@ func ListFilesInFolder(c echo.Context) error {
 		args = []interface{}{userID}
 	} else {
 		query = `
-			SELECT id, name, user_id, is_folder, parent_folders::TEXT[], file_link 
+			SELECT id, name, user_id, is_folder, parent_folders::TEXT[], file_link ,  share_link
 			FROM files 
 			WHERE user_id = $1 
 			AND parent_folders[array_length(parent_folders, 1)] = $2 

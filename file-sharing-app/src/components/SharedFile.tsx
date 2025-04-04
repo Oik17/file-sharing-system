@@ -17,7 +17,7 @@ interface FileResponse {
 
 export default function SharedFile({ code }: SharedFileProps) {
   const [fileData, setFileData] = useState<FileResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,26 +25,23 @@ export default function SharedFile({ code }: SharedFileProps) {
       try {
         setLoading(true);
         const response = await fetch(`http://localhost:8080/files/getByCode?code=${code}`);
-        
+
         if (!response.ok) {
-          throw new Error(response.status === 404 
-            ? 'File not found' 
-            : 'Failed to fetch file');
+          throw new Error(response.status === 404 ? 'File not found' : 'Failed to fetch file');
         }
 
         const raw = await response.json();
         const url = raw.data;
 
-        // Extract file name from URL (before the query params)
         const nameFromUrl = url.split('/').pop()?.split('?')[0] ?? 'file';
         const extension = nameFromUrl.split('.').pop()?.toLowerCase();
 
-        // Detect MIME type from extension
-        const type = extension?.startsWith('jp') ? 'image/jpeg'
-                  : extension === 'png' ? 'image/png'
-                  : extension === 'gif' ? 'image/gif'
-                  : extension === 'pdf' ? 'application/pdf'
-                  : undefined;
+        const type =
+          extension?.startsWith('jp') ? 'image/jpeg' :
+          extension === 'png' ? 'image/png' :
+          extension === 'gif' ? 'image/gif' :
+          extension === 'pdf' ? 'application/pdf' :
+          undefined;
 
         setFileData({
           url,
@@ -80,11 +77,8 @@ export default function SharedFile({ code }: SharedFileProps) {
     );
   }
 
-  if (!fileData) {
-    return null;
-  }
+  if (!fileData) return null;
 
-  // Determine if the file is previewable
   const isImage = fileData.type?.startsWith('image/') || /\.(jpeg|jpg|gif|png)$/i.test(fileData.name ?? '');
   const isPdf = fileData.type === 'application/pdf' || fileData.name?.toLowerCase().endsWith('.pdf') || false;
 
@@ -98,26 +92,26 @@ export default function SharedFile({ code }: SharedFileProps) {
         <div className="p-6">
           {isImage ? (
             <div className="flex justify-center">
-              <Image 
-                src={fileData.url} 
-                alt={fileData.name} 
-                width={800} 
-                height={600} 
+              <Image
+                src={fileData.url}
+                alt={fileData.name}
+                width={800}
+                height={600}
                 className="max-h-[70vh] w-auto object-contain"
               />
             </div>
           ) : isPdf ? (
-            <iframe 
-              src={fileData.url} 
-              className="w-full h-[70vh] border-0"
-              title={fileData.name}
-            ></iframe>
+            <iframe
+  src={`https://docs.google.com/gview?url=${encodeURIComponent(fileData.url)}&embedded=true`}
+  className="w-full h-[70vh] border rounded-md"
+  title="PDF Preview via Google Viewer"
+/>
           ) : (
             <div className="flex flex-col items-center justify-center py-10">
               <FileIcon className="w-16 h-16 text-green-600 mb-4" />
               <p className="mb-4 text-gray-700">This file type cannot be previewed</p>
-              <a 
-                href={fileData.url} 
+              <a
+                href={fileData.url}
                 download={fileData.name}
                 target="_blank"
                 rel="noopener noreferrer"

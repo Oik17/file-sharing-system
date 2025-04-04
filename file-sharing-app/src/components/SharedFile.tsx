@@ -1,9 +1,8 @@
-// components/SharedFile.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { FileIcon } from 'lucide-react'; // Assuming you're using Lucide icons
+import { FileIcon } from 'lucide-react';
 
 interface SharedFileProps {
   code: string;
@@ -32,16 +31,33 @@ export default function SharedFile({ code }: SharedFileProps) {
             ? 'File not found' 
             : 'Failed to fetch file');
         }
-        
-        const data: FileResponse = await response.json();
-        setFileData(data);
+
+        const raw = await response.json();
+        const url = raw.data;
+
+        // Extract file name from URL (before the query params)
+        const nameFromUrl = url.split('/').pop()?.split('?')[0] ?? 'file';
+        const extension = nameFromUrl.split('.').pop()?.toLowerCase();
+
+        // Detect MIME type from extension
+        const type = extension?.startsWith('jp') ? 'image/jpeg'
+                  : extension === 'png' ? 'image/png'
+                  : extension === 'gif' ? 'image/gif'
+                  : extension === 'pdf' ? 'application/pdf'
+                  : undefined;
+
+        setFileData({
+          url,
+          name: nameFromUrl,
+          type,
+        });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
         setLoading(false);
       }
     }
-    
+
     fetchFile();
   }, [code]);
 
@@ -68,12 +84,9 @@ export default function SharedFile({ code }: SharedFileProps) {
     return null;
   }
 
-  // Determine if the file is an image
-  const isImage = /\.(jpeg|jpg|gif|png)$/i.test(fileData.name);
-  
-  // Determine if the file is a PDF
-  const isPdf = fileData?.name?.toLowerCase().endsWith('.pdf') ?? false;
-
+  // Determine if the file is previewable
+  const isImage = fileData.type?.startsWith('image/') || /\.(jpeg|jpg|gif|png)$/i.test(fileData.name ?? '');
+  const isPdf = fileData.type === 'application/pdf' || fileData.name?.toLowerCase().endsWith('.pdf') || false;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -81,7 +94,7 @@ export default function SharedFile({ code }: SharedFileProps) {
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-2xl font-semibold text-gray-800">{fileData.name}</h1>
         </div>
-        
+
         <div className="p-6">
           {isImage ? (
             <div className="flex justify-center">
@@ -106,6 +119,8 @@ export default function SharedFile({ code }: SharedFileProps) {
               <a 
                 href={fileData.url} 
                 download={fileData.name}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
               >
                 Download File

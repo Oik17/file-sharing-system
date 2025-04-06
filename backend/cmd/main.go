@@ -12,7 +12,7 @@ import (
 
 func main() {
 	database.InitDB()
-	database.InitRedis()
+	// database.InitRedis()
 	e := echo.New()
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{

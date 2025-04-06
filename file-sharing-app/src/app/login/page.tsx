@@ -25,7 +25,7 @@ export default function Login() {
 
     const handleGoogleLogin = () => {
         setLoading(true);
-        window.location.href = 'http://localhost:8080/login';
+        window.location.href = 'https://file-be.akshat-gupta.com/login';
     };
 
     return (

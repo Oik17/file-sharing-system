@@ -73,7 +73,7 @@ export default function Dashboard() {
             return;
         }
 
-        fetch(`http://localhost:8080/folders/list`, {
+        fetch(`https://file-be.akshat-gupta.com/folders/list`, {
             headers: { Authorization: `Bearer ${token}` }
         })
         .then(res => res.json())
@@ -95,8 +95,8 @@ export default function Dashboard() {
         }
 
         const url = currentFolderId 
-            ? `http://localhost:8080/files/get?folder_id=${currentFolderId}`
-            : `http://localhost:8080/files/get`;
+            ? `https://file-be.akshat-gupta.com/files/get?folder_id=${currentFolderId}`
+            : `https://file-be.akshat-gupta.com/files/get`;
 
         fetch(url, {
             headers: { Authorization: `Bearer ${token}` }
@@ -162,7 +162,7 @@ export default function Dashboard() {
         }
     
         try {
-            const response = await fetch("http://localhost:8080/upload", {
+            const response = await fetch("https://file-be.akshat-gupta.com/upload", {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -212,7 +212,7 @@ export default function Dashboard() {
         }
     
         try {
-            const response = await fetch("http://localhost:8080/files/createFolder", {
+            const response = await fetch("https://file-be.akshat-gupta.com/files/createFolder", {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,

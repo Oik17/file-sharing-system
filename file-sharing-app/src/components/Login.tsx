@@ -3,7 +3,7 @@ import React from 'react';
 
 const Login = () => {
     const handleLogin = () => {
-        window.location.href = 'http://localhost:8080/login';
+        window.location.href = 'https://file-be.akshat-gupta.com/login';
     };
 
     return (

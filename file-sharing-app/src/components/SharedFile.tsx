@@ -24,7 +24,7 @@ export default function SharedFile({ code }: SharedFileProps) {
     async function fetchFile() {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8080/files/getByCode?code=${code}`);
+        const response = await fetch(`https://file-be.akshat-gupta.com/files/getByCode?code=${code}`);
 
         if (!response.ok) {
           throw new Error(response.status === 404 ? 'File not found' : 'Failed to fetch file');

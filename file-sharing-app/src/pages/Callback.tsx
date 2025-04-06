@@ -22,7 +22,7 @@ const Callback = () => {
 
                 // Exchange code for user data
                 const response = await fetch(
-                    `http://localhost:8080/callback${window.location.search}`
+                    `https://file-be.akshat-gupta.com/callback${window.location.search}`
                 );
                 const data = await response.json();
 

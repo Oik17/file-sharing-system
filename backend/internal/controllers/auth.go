@@ -19,7 +19,7 @@ var (
 	oauthConfig = &oauth2.Config{
 		ClientID:     utils.Config("GOOGLE_CLIENT_ID"),
 		ClientSecret: utils.Config("GOOGLE_CLIENT_SECRET"),
-		RedirectURL:  "http://localhost:8080/callback",
+		RedirectURL:  "https://file-be.akshat-gupta.com/callback",
 		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/calendar"},
 		Endpoint:     google.Endpoint,
 	}

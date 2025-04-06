@@ -1,18 +1,18 @@
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
-      <div className="text-center p-10 rounded-2xl shadow-2xl bg-white/10 backdrop-blur-md max-w-xl w-full">
-        <h1 className="text-4xl md:text-5xl font-bold mb-6 drop-shadow-md">
-          Welcome to the File Sharing System
+    <main className="min-h-screen bg-gradient-to-br from-purple-100 via-indigo-100 to-teal-100 flex items-center justify-center px-4">
+      <div className="bg-white/70 backdrop-blur-md shadow-lg rounded-3xl max-w-2xl w-full p-10 md:p-16 text-center">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-indigo-700 mb-4">
+          Welcome to FileShare
         </h1>
-        <p className="text-lg md:text-xl mb-8 text-white/90">
-          Securely upload, manage, and share your files with ease.
+        <p className="text-gray-700 text-lg md:text-xl mb-8">
+          Effortlessly upload, manage, and share your files — all in one secure place.
         </p>
         <a
           href="/login"
-          className="inline-block px-6 py-3 bg-white text-blue-600 font-semibold text-lg rounded-xl shadow-md hover:bg-gray-100 transition-all"
+          className="inline-block px-8 py-3 bg-indigo-600 text-white text-lg font-semibold rounded-xl shadow-md hover:bg-indigo-700 transition duration-200"
         >
-          Login
+          Get Started
         </a>
       </div>
     </main>

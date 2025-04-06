@@ -1,5 +1,5 @@
 // src/pages/Dashboard.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import FileList from '../components/FileList';
 import FileUpload from '../components/FileUpload';

@@ -8,9 +8,7 @@ import {
   LogOutIcon, 
   UploadCloudIcon, 
   FolderPlusIcon,
-  ChevronLeftIcon,
-  HomeIcon,
-  PlusIcon
+  HomeIcon
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ShareIcon, ClipboardIcon } from "lucide-react"; // Or your icon library
@@ -48,9 +46,9 @@ interface ShareLink{
 
 export default function Dashboard() {
     const [files, setFiles] = useState<File[]>([]);
-    const [folders, setFolders] = useState<Folder[]>([]);
+    const [, setFolders] = useState<Folder[]>([]);
     const [folderName, setFolderName] = useState('');
-    const [isUploading, setIsUploading] = useState(false);
+    // const [isUploading, setIsUploading] = useState(false);
     const [currentFolderId, setCurrentFolderId] = useState('');
     const [breadcrumbs, setBreadcrumbs] = useState<{id: string, name: string}[]>([]);
     const [showNewFolderInput, setShowNewFolderInput] = useState(false);
@@ -126,13 +124,13 @@ export default function Dashboard() {
         setCurrentFolderId(newBreadcrumbs.length > 0 ? newBreadcrumbs[newBreadcrumbs.length - 1].id : '');
     };
 
-    const handleGoBack = () => {
-        if (breadcrumbs.length > 0) {
-            const newBreadcrumbs = breadcrumbs.slice(0, -1);
-            setBreadcrumbs(newBreadcrumbs);
-            setCurrentFolderId(newBreadcrumbs.length > 0 ? newBreadcrumbs[newBreadcrumbs.length - 1].id : '');
-        }
-    };
+    // const handleGoBack = () => {
+    //     if (breadcrumbs.length > 0) {
+    //         const newBreadcrumbs = breadcrumbs.slice(0, -1);
+    //         setBreadcrumbs(newBreadcrumbs);
+    //         setCurrentFolderId(newBreadcrumbs.length > 0 ? newBreadcrumbs[newBreadcrumbs.length - 1].id : '');
+    //     }
+    // };
 
     const handleLogout = () => {
         localStorage.removeItem('jwt_token');

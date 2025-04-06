@@ -62,7 +62,7 @@ func HandleCallback(c echo.Context) error {
 		})
 	}
 	token.AccessToken = user.AccessToken
-	redirectURL := fmt.Sprintf("http://localhost:3000/login?access_token=%s", token.AccessToken)
+	redirectURL := fmt.Sprintf("https://file-sharing.akshat-gupta.com/login?access_token=%s", token.AccessToken)
 	return c.Redirect(http.StatusSeeOther, redirectURL)
 }
 

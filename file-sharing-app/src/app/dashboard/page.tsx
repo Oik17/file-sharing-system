@@ -181,7 +181,7 @@ export default function Dashboard() {
         }
     };
     const handleCopy = (shareLink: string) => {
-        navigator.clipboard.writeText(`localhost:3000/share/${shareLink}`)
+        navigator.clipboard.writeText(`https://file-sharing.akshat-gupta.com/share/${shareLink}`)
           .then(() => {
             toast.success('Link copied to clipboard');
           })

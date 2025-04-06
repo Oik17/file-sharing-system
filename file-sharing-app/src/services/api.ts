@@ -1,5 +1,5 @@
 // src/services/api.ts
-const API_URL = 'http://localhost:8080';
+const API_URL = 'https://file-be.akshat-gupta.com';
 
 export const uploadFiles = async (formData: FormData, token: string) => {
     const response = await fetch(`${API_URL}/upload`, {

@@ -1,9 +1,7 @@
 import SharedFile from '@/components/SharedFile';
+// import { type Metadata } from 'next';
 
-type SharePageProps = {
-  params: { code: string };
-};
 
-export default function SharePage({ params }: SharePageProps) {
+export default function SharePage({ params }: { params: { code: string } }) {
   return <SharedFile code={params.code} />;
 }

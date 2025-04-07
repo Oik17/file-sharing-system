@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { FileIcon, ImageIcon, FileTextIcon, Loader2, AlertTriangle } from 'lucide-react';
 
 interface SharedFileProps {
@@ -15,19 +14,20 @@ interface FileResponse {
   size?: number;
 }
 
-// Utility to format file name
+// 📁 Clean the filename for better display
 function formatFileName(filename: string): string {
   try {
-    const name = decodeURIComponent(filename.split('?')[0] ?? '');
-    const parts = name.split('-');
+    const decoded = decodeURIComponent(filename.split('?')[0] ?? '');
+    const nameWithoutExt = decoded.replace(/\.[^/.]+$/, '');
 
-    // Remove UUID-like prefix (first few parts)
-    const contentParts = parts.length > 3 ? parts.slice(3) : parts;
-    const cleanName = contentParts.join(' ').replace(/\.\w+$/, '');
+    const parts = nameWithoutExt.trim().split(/[\s_-]+/);
+    const uuidPattern = /^[0-9a-f]{4,}$/i;
+    const filtered = parts.filter((part) => !uuidPattern.test(part));
 
-    return cleanName
-      .replace(/[_-]/g, ' ')
-      .replace(/\b\w/g, (char) => char.toUpperCase());
+    return filtered.join(' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, (c) => c.toUpperCase());
   } catch {
     return filename;
   }
@@ -100,16 +100,21 @@ export default function SharedFile({ code }: SharedFileProps) {
 
   if (!fileData) return null;
 
+  const displayName = formatFileName(fileData.name);
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 to-white p-4">
-      <div className="w-full max-w-2xl rounded-2xl bg-white/70 backdrop-blur-xl border border-gray-200 shadow-xl overflow-hidden">
-        
-        {/* File Info Header */}
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 to-white px-4 py-8">
+      <div
+        className={`w-full ${
+          isImage || isPdf ? 'max-w-5xl' : 'max-w-xl'
+        } rounded-2xl bg-white/70 backdrop-blur-xl border border-gray-200 shadow-xl overflow-hidden transition-all`}
+      >
+        {/* Header */}
         <div className="flex items-center gap-4 px-6 py-5 border-b border-gray-200 bg-white/40">
           {renderIcon()}
           <div className="flex flex-col">
-            <h2 className="text-md font-semibold text-gray-800 truncate max-w-sm" title={fileData.name}>
-              {formatFileName(fileData.name)}
+            <h2 className="text-md font-semibold text-gray-800 truncate max-w-sm" title={displayName}>
+              {displayName}
             </h2>
             <p className="text-sm text-gray-500">
               {fileData.type?.split('/').pop()?.toUpperCase() || 'Unknown'} · {(fileData.size ?? 0) / 1024 < 1 ? '<1' : (fileData.size! / 1024).toFixed(1)} KB
@@ -117,22 +122,20 @@ export default function SharedFile({ code }: SharedFileProps) {
           </div>
         </div>
 
-        {/* Preview Area */}
-        <div className="p-6 bg-white">
+        {/* Preview */}
+        <div className="p-0 sm:p-6 bg-white">
           {isImage ? (
             <div className="overflow-hidden rounded-lg border border-gray-300 hover:shadow-lg transition">
-              <Image
+              <img
                 src={fileData.url}
-                alt={fileData.name}
-                width={1200}
-                height={800}
-                className="max-h-[75vh] w-full object-contain transition-transform duration-300 hover:scale-[1.02]"
+                alt={displayName}
+                className="w-full max-h-[85vh] object-contain rounded-md shadow cursor-zoom-in transition hover:scale-105"
               />
             </div>
           ) : isPdf ? (
             <iframe
               src={`https://docs.google.com/gview?url=${encodeURIComponent(fileData.url)}&embedded=true`}
-              className="w-full h-[75vh] rounded-md border"
+              className="w-full h-[80vh] rounded-md border"
               title="PDF Preview"
             />
           ) : (
@@ -141,7 +144,7 @@ export default function SharedFile({ code }: SharedFileProps) {
               <p className="mb-3">Preview not available for this file type.</p>
               <a
                 href={fileData.url}
-                download={fileData.name}
+                download={displayName}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition"
               >
                 Download File

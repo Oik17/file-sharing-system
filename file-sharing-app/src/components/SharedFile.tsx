@@ -34,8 +34,12 @@ export default function SharedFile({ code }: SharedFileProps) {
         const url = raw.data;
 
         const nameFromUrl = url.split('/').pop()?.split('?')[0] ?? 'file';
-        const extension = nameFromUrl.split('.').pop()?.toLowerCase();
+        const decodedName = decodeURIComponent(nameFromUrl);
 
+        // Optional: Strip UUID if present
+        const cleanName = decodedName.replace(/^[a-f0-9-]+-/, '');
+
+        const extension = cleanName.split('.').pop()?.toLowerCase();
         const type =
           extension?.startsWith('jp') ? 'image/jpeg' :
           extension === 'png' ? 'image/png' :
@@ -45,7 +49,7 @@ export default function SharedFile({ code }: SharedFileProps) {
 
         setFileData({
           url,
-          name: nameFromUrl,
+          name: cleanName,
           type,
         });
       } catch (err) {
@@ -102,10 +106,10 @@ export default function SharedFile({ code }: SharedFileProps) {
             </div>
           ) : isPdf ? (
             <iframe
-  src={`https://docs.google.com/gview?url=${encodeURIComponent(fileData.url)}&embedded=true`}
-  className="w-full h-[70vh] border rounded-md"
-  title="PDF Preview via Google Viewer"
-/>
+              src={`https://docs.google.com/gview?url=${encodeURIComponent(fileData.url)}&embedded=true`}
+              className="w-full h-[70vh] border rounded-md"
+              title="PDF Preview via Google Viewer"
+            />
           ) : (
             <div className="flex flex-col items-center justify-center py-10">
               <FileIcon className="w-16 h-16 text-green-600 mb-4" />

@@ -84,13 +84,13 @@ export default function SharedFile({ code }: SharedFileProps) {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 to-white p-4">
-      <div className="w-full max-w-2xl rounded-2xl bg-white/70 backdrop-blur-xl border border-gray-200 shadow-xl overflow-hidden">
-        
-        {/* File Info Header */}
-        <div className="flex items-center gap-4 px-6 py-5 border-b border-gray-200 bg-white/40">
+      <div className="w-full max-w-4xl rounded-2xl bg-white/80 backdrop-blur-md border border-gray-200 shadow-2xl overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-center gap-4 px-6 py-5 border-b border-gray-200 bg-white/50">
           {renderIcon()}
           <div className="flex flex-col">
-            <h2 className="text-md font-semibold text-gray-800 truncate max-w-sm" title={fileData.name}>
+            <h2 className="text-md font-semibold text-gray-800 truncate max-w-md" title={fileData.name}>
               {fileData.name}
             </h2>
             <p className="text-sm text-gray-500">
@@ -99,22 +99,22 @@ export default function SharedFile({ code }: SharedFileProps) {
           </div>
         </div>
 
-        {/* Preview Area */}
+        {/* Preview */}
         <div className="p-6 bg-white">
           {isImage ? (
-            <div className="overflow-hidden rounded-lg border border-gray-300 hover:shadow-lg transition">
+            <div className="overflow-hidden rounded-lg border border-gray-300 shadow-sm max-h-[90vh]">
               <Image
                 src={fileData.url}
                 alt={fileData.name}
-                width={1200}
-                height={800}
-                className="max-h-[75vh] w-full object-contain transition-transform duration-300 hover:scale-[1.02]"
+                width={1600}
+                height={1200}
+                className="w-auto h-full max-h-[90vh] mx-auto object-contain transition-transform duration-300 hover:scale-[1.02]"
               />
             </div>
           ) : isPdf ? (
             <iframe
               src={`https://docs.google.com/gview?url=${encodeURIComponent(fileData.url)}&embedded=true`}
-              className="w-full h-[75vh] rounded-md border"
+              className="w-full h-[90vh] rounded-md border"
               title="PDF Preview"
             />
           ) : (

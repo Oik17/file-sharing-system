@@ -15,6 +15,24 @@ interface FileResponse {
   size?: number;
 }
 
+// Utility to format file name
+function formatFileName(filename: string): string {
+  try {
+    const name = decodeURIComponent(filename.split('?')[0] ?? '');
+    const parts = name.split('-');
+
+    // Remove UUID-like prefix (first few parts)
+    const contentParts = parts.length > 3 ? parts.slice(3) : parts;
+    const cleanName = contentParts.join(' ').replace(/\.\w+$/, '');
+
+    return cleanName
+      .replace(/[_-]/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  } catch {
+    return filename;
+  }
+}
+
 export default function SharedFile({ code }: SharedFileProps) {
   const [fileData, setFileData] = useState<FileResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,14 +102,14 @@ export default function SharedFile({ code }: SharedFileProps) {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 to-white p-4">
-      <div className="w-full max-w-4xl rounded-2xl bg-white/80 backdrop-blur-md border border-gray-200 shadow-2xl overflow-hidden">
-
-        {/* Header */}
-        <div className="flex items-center gap-4 px-6 py-5 border-b border-gray-200 bg-white/50">
+      <div className="w-full max-w-2xl rounded-2xl bg-white/70 backdrop-blur-xl border border-gray-200 shadow-xl overflow-hidden">
+        
+        {/* File Info Header */}
+        <div className="flex items-center gap-4 px-6 py-5 border-b border-gray-200 bg-white/40">
           {renderIcon()}
           <div className="flex flex-col">
-            <h2 className="text-md font-semibold text-gray-800 truncate max-w-md" title={fileData.name}>
-              {fileData.name}
+            <h2 className="text-md font-semibold text-gray-800 truncate max-w-sm" title={fileData.name}>
+              {formatFileName(fileData.name)}
             </h2>
             <p className="text-sm text-gray-500">
               {fileData.type?.split('/').pop()?.toUpperCase() || 'Unknown'} · {(fileData.size ?? 0) / 1024 < 1 ? '<1' : (fileData.size! / 1024).toFixed(1)} KB
@@ -99,22 +117,22 @@ export default function SharedFile({ code }: SharedFileProps) {
           </div>
         </div>
 
-        {/* Preview */}
+        {/* Preview Area */}
         <div className="p-6 bg-white">
           {isImage ? (
-            <div className="overflow-hidden rounded-lg border border-gray-300 shadow-sm max-h-[90vh]">
+            <div className="overflow-hidden rounded-lg border border-gray-300 hover:shadow-lg transition">
               <Image
                 src={fileData.url}
                 alt={fileData.name}
-                width={1600}
-                height={1200}
-                className="w-auto h-full max-h-[90vh] mx-auto object-contain transition-transform duration-300 hover:scale-[1.02]"
+                width={1200}
+                height={800}
+                className="max-h-[75vh] w-full object-contain transition-transform duration-300 hover:scale-[1.02]"
               />
             </div>
           ) : isPdf ? (
             <iframe
               src={`https://docs.google.com/gview?url=${encodeURIComponent(fileData.url)}&embedded=true`}
-              className="w-full h-[90vh] rounded-md border"
+              className="w-full h-[75vh] rounded-md border"
               title="PDF Preview"
             />
           ) : (

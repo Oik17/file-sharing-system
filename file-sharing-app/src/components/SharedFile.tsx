@@ -57,9 +57,12 @@ export default function SharedFile({ code }: SharedFileProps) {
     return <FileIcon className="w-6 h-6 text-gray-500" />;
   };
 
+  const isImage = fileData?.type?.startsWith('image/') || /\.(jpeg|jpg|gif|png)$/i.test(fileData?.name ?? '');
+  const isPdf = fileData?.type === 'application/pdf' || fileData?.name?.toLowerCase().endsWith('.pdf') || false;
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen bg-[#f9fafb]">
         <Loader2 className="w-10 h-10 animate-spin text-green-500" />
       </div>
     );
@@ -67,10 +70,10 @@ export default function SharedFile({ code }: SharedFileProps) {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md text-center">
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#fef2f2]">
+        <div className="bg-white/90 backdrop-blur-sm border border-red-200 rounded-xl shadow-md p-6 text-center">
           <AlertTriangle className="w-8 h-8 text-red-600 mb-2" />
-          <h2 className="text-xl font-semibold text-red-700 mb-2">Error</h2>
+          <h2 className="text-xl font-semibold text-red-700 mb-1">Error</h2>
           <p className="text-red-600">{error}</p>
         </div>
       </div>
@@ -79,52 +82,49 @@ export default function SharedFile({ code }: SharedFileProps) {
 
   if (!fileData) return null;
 
-  const isImage = fileData.type?.startsWith('image/') || /\.(jpeg|jpg|gif|png)$/i.test(fileData.name ?? '');
-  const isPdf = fileData.type === 'application/pdf' || fileData.name?.toLowerCase().endsWith('.pdf') || false;
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-      <div className="bg-white border border-gray-200 rounded-xl shadow-lg max-w-4xl w-full overflow-hidden">
-        <div className="flex items-center gap-3 p-6 border-b border-gray-200">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 to-white p-4">
+      <div className="w-full max-w-2xl rounded-2xl bg-white/70 backdrop-blur-xl border border-gray-200 shadow-xl overflow-hidden">
+        
+        {/* File Info Header */}
+        <div className="flex items-center gap-4 px-6 py-5 border-b border-gray-200 bg-white/40">
           {renderIcon()}
           <div className="flex flex-col">
-            <h1 className="text-lg font-medium text-gray-800 truncate max-w-md" title={fileData.name}>
+            <h2 className="text-md font-semibold text-gray-800 truncate max-w-sm" title={fileData.name}>
               {fileData.name}
-            </h1>
+            </h2>
             <p className="text-sm text-gray-500">
-              {fileData.type?.split('/').pop()?.toUpperCase() || 'Unknown'}
-              {fileData.size ? ` • ${(fileData.size / 1024).toFixed(1)} KB` : ''}
+              {fileData.type?.split('/').pop()?.toUpperCase() || 'Unknown'} · {(fileData.size ?? 0) / 1024 < 1 ? '<1' : (fileData.size! / 1024).toFixed(1)} KB
             </p>
           </div>
         </div>
 
-        <div className="p-6">
+        {/* Preview Area */}
+        <div className="p-6 bg-white">
           {isImage ? (
-            <div className="flex justify-center">
+            <div className="overflow-hidden rounded-lg border border-gray-300 hover:shadow-lg transition">
               <Image
                 src={fileData.url}
                 alt={fileData.name}
-                width={800}
-                height={600}
-                className="max-h-[70vh] w-auto object-contain rounded-md border"
+                width={1200}
+                height={800}
+                className="max-h-[75vh] w-full object-contain transition-transform duration-300 hover:scale-[1.02]"
               />
             </div>
           ) : isPdf ? (
             <iframe
               src={`https://docs.google.com/gview?url=${encodeURIComponent(fileData.url)}&embedded=true`}
-              className="w-full h-[70vh] border rounded-md"
+              className="w-full h-[75vh] rounded-md border"
               title="PDF Preview"
             />
           ) : (
-            <div className="flex flex-col items-center justify-center py-10">
-              <FileIcon className="w-12 h-12 text-gray-400 mb-4" />
-              <p className="mb-3 text-gray-700">Preview not available</p>
+            <div className="flex flex-col items-center justify-center py-10 text-gray-600">
+              <FileIcon className="w-10 h-10 mb-4" />
+              <p className="mb-3">Preview not available for this file type.</p>
               <a
                 href={fileData.url}
                 download={fileData.name}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition"
               >
                 Download File
               </a>
